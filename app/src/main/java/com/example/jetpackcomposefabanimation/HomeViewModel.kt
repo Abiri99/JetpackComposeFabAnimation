@@ -11,6 +11,6 @@ class HomeViewModel: ViewModel() {
 //        }
 //    }
 
-    var items = mutableStateListOf<ListItemModel>(ListItemModel(), ListItemModel(), ListItemModel(),)
+    var items = mutableStateListOf(ListItemModel(), ListItemModel(), ListItemModel())
         private set
 }

@@ -36,6 +36,8 @@ class HomeActivity : ComponentActivity() {
 @Composable
 fun HomeScreen(viewModel: HomeViewModel) {
 
+    val listItems = viewModel.items
+
     Scaffold(modifier = Modifier) {
         Box(
             modifier = Modifier
@@ -48,8 +50,8 @@ fun HomeScreen(viewModel: HomeViewModel) {
                 verticalArrangement = Arrangement.Center,
                 contentPadding = PaddingValues(16.dp),
             ) {
-                items(viewModel.items.count()) { index ->
-                    var item = viewModel.items.elementAt(index)
+                items(listItems.count()) { index ->
+                    var item = listItems.elementAt(index)
 
                     ListItem(model = item)
                 }
@@ -68,7 +70,7 @@ fun ListItem(model: ListItemModel) {
             .height(64.dp)
             .background(color = Color(0xffE1FBFD)),
     ) {
-        
+        Text(text = model.isExpanded.toString())
     }
 }
 
