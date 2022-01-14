@@ -4,7 +4,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -97,7 +99,7 @@ fun ListItem(model: ListItemModel) {
     }
 }
 
-inline fun Modifier.noRippleClickable(crossinline onClick: ()->Unit): Modifier = composed {
+inline fun Modifier.noRippleClickable(crossinline onClick: () -> Unit): Modifier = composed {
     clickable(indication = null,
         interactionSource = remember { MutableInteractionSource() }) {
         onClick()
@@ -107,17 +109,13 @@ inline fun Modifier.noRippleClickable(crossinline onClick: ()->Unit): Modifier =
 @Composable
 fun CustomArrowIcon(isExpanded: Boolean) {
 
-//    val degree by remember { mutableStateOf(0f) }
-
-    val animatedDegree by animateFloatAsState(targetValue = if (isExpanded) 90f else 0f)
-
-//    LaunchedEffect(key1 = isExpanded) {
-//        
-//    }
-
-//    produceState<Boolean>(initialValue = isExpanded, isExpanded) {
-//
-//    }
+    val animatedDegree by animateFloatAsState(
+        targetValue = if (isExpanded) 90f else 0f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = 70f
+        )
+    )
 
     Canvas(modifier = Modifier.size(16.dp)) {
         rotate(animatedDegree) {
