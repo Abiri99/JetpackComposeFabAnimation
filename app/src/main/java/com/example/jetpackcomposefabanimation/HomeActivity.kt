@@ -14,22 +14,21 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Card
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.*
-import androidx.compose.ui.graphics.drawscope.DrawStyle
-import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.view.WindowCompat
 import com.example.jetpackcomposefabanimation.ui.theme.JetpackComposeFabAnimationTheme
+import com.google.accompanist.insets.ProvideWindowInsets
+import com.google.accompanist.insets.systemBarsPadding
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 class HomeActivity : ComponentActivity() {
 
@@ -37,9 +36,12 @@ class HomeActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         setContent {
             JetpackComposeFabAnimationTheme {
-                HomeScreen(viewModel)
+                ProvideWindowInsets {
+                    HomeScreen(viewModel)
+                }
             }
         }
     }
@@ -47,6 +49,15 @@ class HomeActivity : ComponentActivity() {
 
 @Composable
 fun HomeScreen(viewModel: HomeViewModel) {
+
+    // Remember a SystemUiController
+    val systemUiController = rememberSystemUiController()
+    val useDarkIcons = MaterialTheme.colors.isLight
+
+    SideEffect {
+        systemUiController.setStatusBarColor(color = Color.Transparent, darkIcons = useDarkIcons)
+//        systemUiController.setNavigationBarColor(color = Color.White, darkIcons = useDarkIcons)
+    }
 
     val listItems = viewModel.items
 
@@ -57,7 +68,6 @@ fun HomeScreen(viewModel: HomeViewModel) {
                 .background(Color(0xff4DD1E1)),
         ) {
             LazyColumn(
-                modifier = Modifier,
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
                 contentPadding = PaddingValues(vertical = 24.dp),
