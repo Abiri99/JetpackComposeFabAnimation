@@ -4,8 +4,11 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,13 +16,15 @@ import androidx.compose.material.Card
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.DrawStyle
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.jetpackcomposefabanimation.ui.theme.JetpackComposeFabAnimationTheme
@@ -67,6 +72,11 @@ fun HomeScreen(viewModel: HomeViewModel) {
 
 @Composable
 fun ListItem(model: ListItemModel) {
+
+    var isExpanded by remember {
+        mutableStateOf(false)
+    }
+
     Card(
         elevation = 8.dp,
         backgroundColor = Color(0xffE2FAFF),
@@ -74,28 +84,57 @@ fun ListItem(model: ListItemModel) {
         modifier = Modifier
             .height(84.dp)
             .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 8.dp),
+            .padding(horizontal = 24.dp, vertical = 8.dp)
+            .noRippleClickable {
+                isExpanded = !isExpanded
+            },
     ) {
         Row(modifier = Modifier, verticalAlignment = Alignment.CenterVertically) {
             Surface(modifier = Modifier.padding(16.dp), color = Color.Transparent) {
-                CustomArrowIcon()
+                CustomArrowIcon(isExpanded = isExpanded)
             }
         }
     }
 }
 
-@Composable
-fun CustomArrowIcon() {
-    Canvas(modifier = Modifier.size(16.dp)) {
-        val arrowPath = Path().let {
-            it.moveTo(3 * this.size.width / 10, 1 * this.size.height / 8)
-            it.lineTo(7 * this.size.width / 10, this.size.height / 2)
-            it.lineTo(3 * this.size.width / 10, 7 * this.size.height / 8)
-//            it.close()
-            it
-        }
+inline fun Modifier.noRippleClickable(crossinline onClick: ()->Unit): Modifier = composed {
+    clickable(indication = null,
+        interactionSource = remember { MutableInteractionSource() }) {
+        onClick()
+    }
+}
 
-        drawPath(path = arrowPath, style = Stroke(width = 10f, join = StrokeJoin.Round, cap = StrokeCap.Round), color = Color(0xff7DD6DE))
+@Composable
+fun CustomArrowIcon(isExpanded: Boolean) {
+
+//    val degree by remember { mutableStateOf(0f) }
+
+    val animatedDegree by animateFloatAsState(targetValue = if (isExpanded) 90f else 0f)
+
+//    LaunchedEffect(key1 = isExpanded) {
+//        
+//    }
+
+//    produceState<Boolean>(initialValue = isExpanded, isExpanded) {
+//
+//    }
+
+    Canvas(modifier = Modifier.size(16.dp)) {
+        rotate(animatedDegree) {
+            val arrowPath = Path().let {
+                it.moveTo(3 * this.size.width / 10, 1 * this.size.height / 8)
+                it.lineTo(7 * this.size.width / 10, this.size.height / 2)
+                it.lineTo(3 * this.size.width / 10, 7 * this.size.height / 8)
+//                it.close()
+                it
+            }
+
+            drawPath(
+                path = arrowPath,
+                style = Stroke(width = 10f, join = StrokeJoin.Round, cap = StrokeCap.Round),
+                color = Color(0xff7DD6DE)
+            )
+        }
     }
 }
 
