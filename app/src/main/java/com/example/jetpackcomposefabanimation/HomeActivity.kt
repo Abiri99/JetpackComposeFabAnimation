@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import com.example.jetpackcomposefabanimation.ui.theme.JetpackComposeFabAnimationTheme
 import com.google.accompanist.insets.ProvideWindowInsets
+import com.google.accompanist.insets.statusBarsHeight
 import com.google.accompanist.insets.systemBarsPadding
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
@@ -78,6 +79,23 @@ fun HomeScreen(viewModel: HomeViewModel) {
                     ListItem(model = item)
                 }
             }
+
+            CustomAppBar()
+        }
+    }
+}
+
+@Composable
+fun CustomAppBar() {
+    Card(
+        backgroundColor = Color(0xff3DBCD5),
+        elevation = 4.dp,
+        modifier = Modifier
+            .statusBarsHeight(additional = 48.dp)
+            .fillMaxWidth()
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+
         }
     }
 }
