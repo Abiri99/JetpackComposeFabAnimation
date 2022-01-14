@@ -112,7 +112,7 @@ fun CustomArrowIcon(isExpanded: Boolean) {
     val animatedDegree by animateFloatAsState(
         targetValue = if (isExpanded) 90f else 0f,
         animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
+            dampingRatio = Spring.DampingRatioHighBouncy,
             stiffness = 70f
         )
     )
