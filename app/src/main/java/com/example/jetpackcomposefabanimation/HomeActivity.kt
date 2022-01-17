@@ -23,11 +23,14 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.core.view.WindowCompat
 import com.example.jetpackcomposefabanimation.ui.theme.JetpackComposeFabAnimationTheme
 import com.google.accompanist.insets.ProvideWindowInsets
 import com.google.accompanist.insets.statusBarsHeight
+import com.google.accompanist.insets.statusBarsPadding
 import com.google.accompanist.insets.systemBarsPadding
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
@@ -62,6 +65,8 @@ fun HomeScreen(viewModel: HomeViewModel) {
 
     val listItems = viewModel.items
 
+    var appBarAdditionalHeight = 48.dp
+
     Scaffold(modifier = Modifier) {
         Box(
             modifier = Modifier
@@ -72,6 +77,7 @@ fun HomeScreen(viewModel: HomeViewModel) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
                 contentPadding = PaddingValues(vertical = 24.dp),
+                modifier = Modifier.statusBarsPadding().padding(top = appBarAdditionalHeight, bottom = 64.dp)
             ) {
                 items(listItems.count()) { index ->
                     var item = listItems.elementAt(index)
@@ -80,19 +86,20 @@ fun HomeScreen(viewModel: HomeViewModel) {
                 }
             }
 
-            CustomAppBar()
+            CustomAppBar(appBarAdditionalHeight = appBarAdditionalHeight)
         }
     }
 }
 
 @Composable
-fun CustomAppBar() {
+fun CustomAppBar(appBarAdditionalHeight: Dp) {
     Card(
         backgroundColor = Color(0xff3DBCD5),
         elevation = 4.dp,
         modifier = Modifier
-            .statusBarsHeight(additional = 48.dp)
+            .statusBarsHeight(additional = appBarAdditionalHeight)
             .fillMaxWidth()
+            .zIndex(1f)
     ) {
         Box(contentAlignment = Alignment.Center) {
 
