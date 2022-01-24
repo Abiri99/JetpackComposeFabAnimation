@@ -124,7 +124,7 @@ fun HomeScreen(viewModel: HomeViewModel) {
 }
 
 @Composable
-fun Line(color: Color, height: Dp = 12.dp, modifier: Modifier = Modifier) {
+fun Line(color: Color = Color(0xff60D2DD), height: Dp = 12.dp, modifier: Modifier = Modifier) {
     Surface(
         shape = RoundedCornerShape(size = 1000.dp),
         color = color,
@@ -185,7 +185,7 @@ fun ListItem(model: ListItemModel) {
 
     val arrowRotationDegree by transition.animateFloat(label = "arrow_rotation_degree", transitionSpec = {
         spring(
-            dampingRatio = Spring.DampingRatioHighBouncy,
+            dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = 70f
         )
     }) { state ->
@@ -214,17 +214,20 @@ fun ListItem(model: ListItemModel) {
         )
     }) { state ->
         when (state) {
-            ListItemState.Collapsed -> 84.dp
+            ListItemState.Collapsed -> 88.dp
             ListItemState.Expanded -> 250.dp
         }
     }
 
-//    var isExpanded by remember {
-//        mutableStateOf(false)
-//    }
+    val cardElevation by transition.animateDp(label = "card_elevation") { state ->
+        when (state) {
+            ListItemState.Collapsed -> 0.dp
+            ListItemState.Expanded -> 12.dp
+        }
+    }
 
     Card(
-        elevation = 0.dp,
+        elevation = cardElevation,
         backgroundColor = Color(0xffE2FAFF),
         shape = RoundedCornerShape(size = 10.dp),
         modifier = Modifier
@@ -238,9 +241,22 @@ fun ListItem(model: ListItemModel) {
                 }
             },
     ) {
-        Row(modifier = Modifier, verticalAlignment = Alignment.CenterVertically) {
-            Surface(modifier = Modifier.padding(16.dp), color = Color.Transparent) {
+        Row(modifier = Modifier, verticalAlignment = Alignment.Top) {
+            Surface(modifier = Modifier.height(72.dp).padding(16.dp).wrapContentHeight(), color = Color.Transparent) {
                 CustomArrowIcon(arrowRotationDegree)
+            }
+            Column(verticalArrangement = Arrangement.Top) {
+                Row(verticalAlignment = Alignment.Bottom, modifier = Modifier.height(36.dp)) {
+                    Line(color = Color(0xff84D6DE), height = 12.dp, modifier = Modifier.width(200.dp).padding(bottom = 6.dp))
+                }
+                Row(verticalAlignment = Alignment.Top, modifier = Modifier.height(36.dp)) {
+                    Line(color = Color(0xffAEE7EF), height = 12.dp, modifier = Modifier
+                        .padding(top = 6.dp, bottom = 8.dp, end = 16.dp)
+                        .weight(1f))
+                    Line(color = Color(0xffAEE7EF), height = 12.dp, modifier = Modifier
+                        .padding(top = 6.dp, bottom = 8.dp, end = 48.dp)
+                        .weight(2f))
+                }
             }
         }
     }
