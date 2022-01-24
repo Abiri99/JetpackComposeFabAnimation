@@ -33,17 +33,41 @@ import com.google.accompanist.insets.statusBarsHeight
 import com.google.accompanist.insets.statusBarsPadding
 import com.google.accompanist.insets.systemBarsPadding
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import android.view.WindowManager
+
+import android.os.Build
+import android.view.View
+import android.view.Window
+
 
 class HomeActivity : ComponentActivity() {
 
     private val viewModel: HomeViewModel by viewModels()
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        WindowCompat.setDecorFitsSystemWindows(window, false)
+        val window: Window = window
+        //show content behind status bar
+        window?.decorView?.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+//        WindowCompat.setDecorFitsSystemWindows(window, false)
+//        window.setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+//            WindowManager.LayoutParams.SOFT_INPUT_MASK_ADJUST)
+
         setContent {
             JetpackComposeFabAnimationTheme {
                 ProvideWindowInsets {
+
+                    val systemUiController = rememberSystemUiController()
+                    val useDarkIcons = MaterialTheme.colors.isLight
+                    SideEffect {
+                        systemUiController.setStatusBarColor(
+                            color = Color.Transparent,
+                            darkIcons = useDarkIcons
+                        )
+                    }
+
                     HomeScreen(viewModel)
                 }
             }
@@ -53,15 +77,6 @@ class HomeActivity : ComponentActivity() {
 
 @Composable
 fun HomeScreen(viewModel: HomeViewModel) {
-
-    // Remember a SystemUiController
-    val systemUiController = rememberSystemUiController()
-    val useDarkIcons = MaterialTheme.colors.isLight
-
-    SideEffect {
-        systemUiController.setStatusBarColor(color = Color.Transparent, darkIcons = useDarkIcons)
-//        systemUiController.setNavigationBarColor(color = Color.White, darkIcons = useDarkIcons)
-    }
 
     val listItems = viewModel.items
 
@@ -76,8 +91,15 @@ fun HomeScreen(viewModel: HomeViewModel) {
             LazyColumn(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
-                contentPadding = PaddingValues(vertical = 24.dp),
-                modifier = Modifier.statusBarsPadding().padding(top = appBarAdditionalHeight, bottom = 64.dp)
+                contentPadding = PaddingValues(
+                    start = 16.dp,
+                    end = 16.dp,
+                    bottom = 64.dp,
+                    top = 16.dp
+                ),
+                modifier = Modifier
+                    .statusBarsPadding()
+                    .padding(top = appBarAdditionalHeight)
             ) {
                 items(listItems.count()) { index ->
                     var item = listItems.elementAt(index)
@@ -86,23 +108,63 @@ fun HomeScreen(viewModel: HomeViewModel) {
                 }
             }
 
-            CustomAppBar(appBarAdditionalHeight = appBarAdditionalHeight)
+            CustomAppBar(appBarAdditionalHeight = appBarAdditionalHeight) {
+                Line(
+                    color = Color(0xff60D2DD),
+                    modifier = Modifier
+                        .padding(bottom = 16.dp)
+                        .width(120.dp),
+                    height = 12.dp,
+                )
+                DrawerButton(modifier = Modifier.padding(bottom = 10.dp, start = 20.dp).align(alignment = Alignment.BottomStart))
+            }
+
         }
     }
 }
 
 @Composable
-fun CustomAppBar(appBarAdditionalHeight: Dp) {
+fun Line(color: Color, height: Dp = 12.dp, modifier: Modifier = Modifier) {
+    Surface(
+        shape = RoundedCornerShape(size = 1000.dp),
+        color = color,
+        modifier = modifier
+            .fillMaxWidth()
+            .height(height),
+    ) {
+    }
+}
+
+@Composable
+fun DrawerButton(color: Color = Color(0xff60D2DD), modifier: Modifier = Modifier) {
+    Column(
+        verticalArrangement = Arrangement.SpaceAround,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier
+            .width(30.dp)
+            .height(28.dp),
+    ) {
+        repeat(3) {
+            Line(color = color, height = 5.dp)
+        }
+    }
+}
+
+@Composable
+fun CustomAppBar(appBarAdditionalHeight: Dp, child: @Composable() () -> Unit) {
     Card(
         backgroundColor = Color(0xff3DBCD5),
         elevation = 4.dp,
         modifier = Modifier
             .statusBarsHeight(additional = appBarAdditionalHeight)
             .fillMaxWidth()
-            .zIndex(1f)
+            .zIndex(1f),
     ) {
-        Box(contentAlignment = Alignment.Center) {
-
+        Box(
+            contentAlignment = Alignment.BottomCenter,
+            modifier = Modifier
+        ) {
+            child()
         }
     }
 }
@@ -115,13 +177,13 @@ fun ListItem(model: ListItemModel) {
     }
 
     Card(
-        elevation = 8.dp,
+        elevation = 0.dp,
         backgroundColor = Color(0xffE2FAFF),
-        shape = RoundedCornerShape(size = 6.dp),
+        shape = RoundedCornerShape(size = 10.dp),
         modifier = Modifier
             .height(84.dp)
             .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 8.dp)
+            .padding(vertical = 8.dp, horizontal = 8.dp)
             .noRippleClickable {
                 isExpanded = !isExpanded
             },
