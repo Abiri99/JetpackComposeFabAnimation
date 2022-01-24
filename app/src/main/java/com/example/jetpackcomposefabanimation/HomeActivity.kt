@@ -4,9 +4,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -38,6 +35,7 @@ import android.view.WindowManager
 import android.os.Build
 import android.view.View
 import android.view.Window
+import androidx.compose.animation.core.*
 
 
 class HomeActivity : ComponentActivity() {
@@ -92,8 +90,8 @@ fun HomeScreen(viewModel: HomeViewModel) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
                 contentPadding = PaddingValues(
-                    start = 16.dp,
-                    end = 16.dp,
+                    start = 8.dp,
+                    end = 8.dp,
                     bottom = 64.dp,
                     top = 16.dp
                 ),
@@ -116,7 +114,9 @@ fun HomeScreen(viewModel: HomeViewModel) {
                         .width(120.dp),
                     height = 12.dp,
                 )
-                DrawerButton(modifier = Modifier.padding(bottom = 10.dp, start = 20.dp).align(alignment = Alignment.BottomStart))
+                DrawerButton(modifier = Modifier
+                    .padding(bottom = 10.dp, start = 20.dp)
+                    .align(alignment = Alignment.BottomStart))
             }
 
         }
@@ -169,28 +169,78 @@ fun CustomAppBar(appBarAdditionalHeight: Dp, child: @Composable() () -> Unit) {
     }
 }
 
+enum class ListItemState {
+    Collapsed,
+    Expanded
+}
+
 @Composable
 fun ListItem(model: ListItemModel) {
 
-    var isExpanded by remember {
-        mutableStateOf(false)
+    var currentState by remember {
+        mutableStateOf(ListItemState.Collapsed)
     }
+    
+    val transition = updateTransition(targetState = currentState, label = "list_item_transition")
+
+    val arrowRotationDegree by transition.animateFloat(label = "arrow_rotation_degree", transitionSpec = {
+        spring(
+            dampingRatio = Spring.DampingRatioHighBouncy,
+            stiffness = 70f
+        )
+    }) { state ->
+        when (state) {
+            ListItemState.Collapsed -> 0f
+            ListItemState.Expanded -> 90f
+        }
+    }
+
+    val cardHorizontalPadding by transition.animateDp(label = "card_horizontal_padding", transitionSpec = {
+        spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = 70f
+        )
+    }) { state ->
+        when (state) {
+            ListItemState.Collapsed -> 20.dp
+            ListItemState.Expanded -> 8.dp
+        }
+    }
+
+    val cardHeight by transition.animateDp(label = "card_height", transitionSpec = {
+        spring(
+            dampingRatio = Spring.DampingRatioLowBouncy,
+            stiffness = 70f
+        )
+    }) { state ->
+        when (state) {
+            ListItemState.Collapsed -> 84.dp
+            ListItemState.Expanded -> 250.dp
+        }
+    }
+
+//    var isExpanded by remember {
+//        mutableStateOf(false)
+//    }
 
     Card(
         elevation = 0.dp,
         backgroundColor = Color(0xffE2FAFF),
         shape = RoundedCornerShape(size = 10.dp),
         modifier = Modifier
-            .height(84.dp)
+            .height(cardHeight)
             .fillMaxWidth()
-            .padding(vertical = 8.dp, horizontal = 8.dp)
+            .padding(vertical = 8.dp, horizontal = cardHorizontalPadding)
             .noRippleClickable {
-                isExpanded = !isExpanded
+                currentState = when (currentState) {
+                    ListItemState.Expanded -> ListItemState.Collapsed
+                    ListItemState.Collapsed -> ListItemState.Expanded
+                }
             },
     ) {
         Row(modifier = Modifier, verticalAlignment = Alignment.CenterVertically) {
             Surface(modifier = Modifier.padding(16.dp), color = Color.Transparent) {
-                CustomArrowIcon(isExpanded = isExpanded)
+                CustomArrowIcon(arrowRotationDegree)
             }
         }
     }
@@ -204,18 +254,10 @@ inline fun Modifier.noRippleClickable(crossinline onClick: () -> Unit): Modifier
 }
 
 @Composable
-fun CustomArrowIcon(isExpanded: Boolean) {
-
-    val animatedDegree by animateFloatAsState(
-        targetValue = if (isExpanded) 90f else 0f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioHighBouncy,
-            stiffness = 70f
-        )
-    )
+fun CustomArrowIcon(arrowRotationDegree: Float) {
 
     Canvas(modifier = Modifier.size(16.dp)) {
-        rotate(animatedDegree) {
+        rotate(arrowRotationDegree) {
             val arrowPath = Path().let {
                 it.moveTo(3 * this.size.width / 10, 1 * this.size.height / 8)
                 it.lineTo(7 * this.size.width / 10, this.size.height / 2)
