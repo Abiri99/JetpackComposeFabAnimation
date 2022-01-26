@@ -35,7 +35,10 @@ import android.view.WindowManager
 import android.os.Build
 import android.view.View
 import android.view.Window
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.scale
 
 
 class HomeActivity : ComponentActivity() {
@@ -73,12 +76,37 @@ class HomeActivity : ComponentActivity() {
     }
 }
 
+enum class ListScaleState {
+    Default,
+    ZoomedOut
+}
+
 @Composable
 fun HomeScreen(viewModel: HomeViewModel) {
 
     val listItems = viewModel.items
 
     var appBarAdditionalHeight = 48.dp
+
+    var listScaleState by remember {
+        mutableStateOf(ListScaleState.Default)
+    }
+
+    val transition = updateTransition(targetState = listScaleState, label = "list_scal_state")
+
+    val listItemScaleX by transition.animateFloat(label = "list_item_scale_x") { state ->
+        when (state) {
+            ListScaleState.Default -> 1f
+            ListScaleState.ZoomedOut -> 0.8f
+        }
+    }
+
+    val listItemScaleY by transition.animateFloat(label = "list_item_scale_y") { state ->
+        when (state) {
+            ListScaleState.Default -> 1f
+            ListScaleState.ZoomedOut -> 0.8f
+        }
+    }
 
     Scaffold(modifier = Modifier) {
         Box(
@@ -98,11 +126,12 @@ fun HomeScreen(viewModel: HomeViewModel) {
                 modifier = Modifier
                     .statusBarsPadding()
                     .padding(top = appBarAdditionalHeight)
+                    .scale(scaleX = listItemScaleX, scaleY = 1f)
             ) {
                 items(listItems.count()) { index ->
                     var item = listItems.elementAt(index)
 
-                    ListItem(model = item)
+                    ListItem(model = item, scaleX = listItemScaleX, scaleY = listItemScaleY)
                 }
             }
 
@@ -114,9 +143,30 @@ fun HomeScreen(viewModel: HomeViewModel) {
                         .width(120.dp),
                     height = 12.dp,
                 )
-                DrawerButton(modifier = Modifier
-                    .padding(bottom = 10.dp, start = 20.dp)
-                    .align(alignment = Alignment.BottomStart))
+                DrawerButton(
+                    modifier = Modifier
+                        .padding(bottom = 10.dp, start = 20.dp)
+                        .align(alignment = Alignment.BottomStart)
+                )
+            }
+
+            Card(
+                elevation = 8.dp,
+                shape = CircleShape,
+                backgroundColor = Color(0xff1E6088),
+                modifier = Modifier
+                    .padding(24.dp)
+                    .height(84.dp)
+                    .width(84.dp)
+                    .align(Alignment.BottomEnd)
+                    .clickable {
+                        listScaleState = when (listScaleState) {
+                            ListScaleState.Default -> ListScaleState.ZoomedOut
+                            ListScaleState.ZoomedOut -> ListScaleState.Default
+                        }
+                    }
+            ) {
+
             }
 
         }
@@ -175,32 +225,36 @@ enum class ListItemState {
 }
 
 @Composable
-fun ListItem(model: ListItemModel) {
+fun ListItem(model: ListItemModel, scaleX: Float, scaleY: Float) {
 
     var currentState by remember {
-        mutableStateOf(ListItemState.Collapsed)
+        mutableStateOf(if (model.isExpanded) ListItemState.Expanded else ListItemState.Collapsed)
     }
-    
+
     val transition = updateTransition(targetState = currentState, label = "list_item_transition")
 
-    val arrowRotationDegree by transition.animateFloat(label = "arrow_rotation_degree", transitionSpec = {
-        spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = 70f
-        )
-    }) { state ->
+    val arrowRotationDegree by transition.animateFloat(
+        label = "arrow_rotation_degree",
+        transitionSpec = {
+            spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = 70f
+            )
+        }) { state ->
         when (state) {
             ListItemState.Collapsed -> 0f
             ListItemState.Expanded -> 90f
         }
     }
 
-    val cardHorizontalPadding by transition.animateDp(label = "card_horizontal_padding", transitionSpec = {
-        spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = 70f
-        )
-    }) { state ->
+    val cardHorizontalPadding by transition.animateDp(
+        label = "card_horizontal_padding",
+        transitionSpec = {
+            spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = 70f
+            )
+        }) { state ->
         when (state) {
             ListItemState.Collapsed -> 20.dp
             ListItemState.Expanded -> 8.dp
@@ -226,12 +280,18 @@ fun ListItem(model: ListItemModel) {
         }
     }
 
+//    val scaleX by transition.animateFloat(label = "scale_x") { state ->
+//        when (state) {
+//
+//        }
+//    }
+
     Card(
         elevation = cardElevation,
         backgroundColor = Color(0xffE2FAFF),
         shape = RoundedCornerShape(size = 10.dp),
         modifier = Modifier
-            .height(cardHeight)
+            .height(cardHeight * scaleY)
             .fillMaxWidth()
             .padding(vertical = 8.dp, horizontal = cardHorizontalPadding)
             .noRippleClickable {
@@ -242,20 +302,33 @@ fun ListItem(model: ListItemModel) {
             },
     ) {
         Row(modifier = Modifier, verticalAlignment = Alignment.Top) {
-            Surface(modifier = Modifier.height(72.dp).padding(16.dp).wrapContentHeight(), color = Color.Transparent) {
+            Surface(
+                modifier = Modifier
+                    .height(72.dp)
+                    .padding(16.dp)
+                    .wrapContentHeight(), color = Color.Transparent
+            ) {
                 CustomArrowIcon(arrowRotationDegree)
             }
             Column(verticalArrangement = Arrangement.Top) {
                 Row(verticalAlignment = Alignment.Bottom, modifier = Modifier.height(36.dp)) {
-                    Line(color = Color(0xff84D6DE), height = 12.dp, modifier = Modifier.width(200.dp).padding(bottom = 6.dp))
+                    Line(
+                        color = Color(0xff84D6DE), height = 12.dp, modifier = Modifier
+                            .width(200.dp)
+                            .padding(bottom = 6.dp)
+                    )
                 }
                 Row(verticalAlignment = Alignment.Top, modifier = Modifier.height(36.dp)) {
-                    Line(color = Color(0xffAEE7EF), height = 12.dp, modifier = Modifier
-                        .padding(top = 6.dp, bottom = 8.dp, end = 16.dp)
-                        .weight(1f))
-                    Line(color = Color(0xffAEE7EF), height = 12.dp, modifier = Modifier
-                        .padding(top = 6.dp, bottom = 8.dp, end = 48.dp)
-                        .weight(2f))
+                    Line(
+                        color = Color(0xffAEE7EF), height = 12.dp, modifier = Modifier
+                            .padding(top = 6.dp, bottom = 8.dp, end = 16.dp)
+                            .weight(1f)
+                    )
+                    Line(
+                        color = Color(0xffAEE7EF), height = 12.dp, modifier = Modifier
+                            .padding(top = 6.dp, bottom = 8.dp, end = 48.dp)
+                            .weight(2f)
+                    )
                 }
             }
         }
